@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ADMIN ───────────────────────────────────────────────
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin")
+}
+
+// ─── PROFESSOR ───────────────────────────────────────────
+model Teacher {
+  id        String      @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  subject   String? // Ex: "Matemática", "Inglês"
+  type      TeacherType @default(SUBSTITUTE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  schedules   ClassSchedule[]
+  assignments ClassAssignment[]
+
+  @@map("teachers")
+}
+
+enum TeacherType {
+  FIXED
+  SUBSTITUTE
+}
+
+// ─── TURMA / SALA ─────────────────────────────────────────
+model Classroom {
+  id        String   @id @default(uuid())
+  name      String // Ex: "3º A"
+  grade     String // Ex: "3º Ano"
+  room      String // Ex: "Sala 12"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedules ClassSchedule[]
+
+  @@map("classrooms")
+}
+
+// ─── HORÁRIO DA AULA ──────────────────────────────────────
+model ClassSchedule {
+  id           String    @id @default(uuid())
+  classRoomId  String
+  teacherId    String
+  lessonNumber Int // 1, 2, 3, 4, 5, 6
+  dayOfWeek    DayOfWeek
+  period       Period // MORNING ou AFTERNOON
+  startTime    String // Ex: "07:00"
+  endTime      String // Ex: "07:50"
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  classroom   Classroom         @relation(fields: [classRoomId], references: [id])
+  teacher     Teacher           @relation(fields: [teacherId], references: [id])
+  assignments ClassAssignment[]
+
+  @@map("class_schedules")
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+}
+
+enum Period {
+  MORNING
+  AFTERNOON
+}
+
+// ─── ATRIBUIÇÃO (professor eventual → aula) ───────────────
+model ClassAssignment {
+  id         String           @id @default(uuid())
+  teacherId  String
+  scheduleId String
+  date       DateTime // Data exata: 02/05/2026
+  status     AssignmentStatus @default(PENDING)
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  teacher  Teacher       @relation(fields: [teacherId], references: [id])
+  schedule ClassSchedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("class_assignments")
+}
+
+enum AssignmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
