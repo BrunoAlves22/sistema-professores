@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `class_assignments` MODIFY `status` ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'PENDING';

@@ -33,7 +33,6 @@ model Teacher {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  schedules   ClassSchedule[]
   assignments ClassAssignment[]
 
   @@map("teachers")
@@ -53,7 +52,7 @@ model Classroom {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  schedules ClassSchedule[]
+  assignments ClassAssignment[] // <- adiciona isso
 
   @@map("classrooms")
 }
@@ -61,18 +60,14 @@ model Classroom {
 // ─── HORÁRIO DA AULA ──────────────────────────────────────
 model ClassSchedule {
   id           String    @id @default(uuid())
-  classRoomId  String
-  teacherId    String
-  lessonNumber Int // 1, 2, 3, 4, 5, 6
+  lessonNumber Int
   dayOfWeek    DayOfWeek
-  period       Period // MORNING ou AFTERNOON
-  startTime    String // Ex: "07:00"
-  endTime      String // Ex: "07:50"
+  period       Period
+  startTime    String
+  endTime      String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  classroom   Classroom         @relation(fields: [classRoomId], references: [id])
-  teacher     Teacher           @relation(fields: [teacherId], references: [id])
   assignments ClassAssignment[]
 
   @@map("class_schedules")
@@ -93,17 +88,19 @@ enum Period {
 
 // ─── ATRIBUIÇÃO (professor eventual → aula) ───────────────
 model ClassAssignment {
-  id         String           @id @default(uuid())
-  teacherId  String
-  scheduleId String
-  date       DateTime // Data exata: 02/05/2026
-  status     AssignmentStatus @default(PENDING)
-  notes      String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id          String           @id @default(uuid())
+  teacherId   String
+  scheduleId  String
+  classRoomId String
+  date        DateTime // Data exata: 02/05/2026
+  status      AssignmentStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  teacher  Teacher       @relation(fields: [teacherId], references: [id])
-  schedule ClassSchedule @relation(fields: [scheduleId], references: [id])
+  teacher   Teacher       @relation(fields: [teacherId], references: [id])
+  schedule  ClassSchedule @relation(fields: [scheduleId], references: [id])
+  classroom Classroom     @relation(fields: [classRoomId], references: [id])
 
   @@map("class_assignments")
 }
@@ -112,4 +109,5 @@ enum AssignmentStatus {
   PENDING
   CONFIRMED
   CANCELLED
+  COMPLETED
 }

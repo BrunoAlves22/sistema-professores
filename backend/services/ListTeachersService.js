@@ -1,15 +1,14 @@
 const prisma = require("../prisma");
-const { AppError } = require("../errors/AppError");
+const { teacherTypeMap } = require("../utils/translations");
 
 class ListTeachersService {
   async execute() {
     const teachers = await prisma.teacher.findMany();
 
-    if (teachers.length === 0) {
-      throw new AppError("Nenhum professor cadastrado.", 404);
-    }
-
-    return teachers;
+    return teachers.map((teacher) => ({
+      ...teacher,
+      type: teacherTypeMap[teacher.type],
+    }));
   }
 }
 

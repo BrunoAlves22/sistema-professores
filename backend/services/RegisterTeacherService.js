@@ -1,10 +1,10 @@
 const prisma = require("../prisma");
 const { AppError } = require("../errors/AppError");
+const { teacherTypeMap } = require("../utils/translations");
 
 class RegisterTeacherService {
   async execute({ name, email, phone, type, subject }) {
     if (email) {
-      // só verifica duplicata se o email foi informado
       const emailAlreadyExists = await prisma.teacher.findFirst({
         where: { email },
       });
@@ -24,7 +24,10 @@ class RegisterTeacherService {
       },
     });
 
-    return teacher;
+    return {
+      ...teacher,
+      type: teacherTypeMap[teacher.type],
+    };
   }
 }
 
